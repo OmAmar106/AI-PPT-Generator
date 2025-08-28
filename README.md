@@ -11,6 +11,10 @@ AI-PPT-Generator is a Python-based tool that automatically generates PowerPoint 
 
 ## Screenshots
 
+<img width="1855" height="924" alt="image" src="https://github.com/user-attachments/assets/d7a04f3c-0e86-4438-9f31-5ee8ae5d27c7" />
+
+<img width="1920" height="1071" alt="image" src="https://github.com/user-attachments/assets/eaca32b2-350d-4f76-8ca4-87aa891d47e7" />
+
 ## Installation
 
 1. Clone the repository:
