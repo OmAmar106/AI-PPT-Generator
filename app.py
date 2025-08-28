@@ -35,9 +35,8 @@ def process():
     # start,end = start[0],end[0]
 
     fans = 'Prompt:'+text+'\n\nPPT Contents:\n\n'+'\n\n'.join(md_results)
-
     ppt_bytes = BytesIO()
-    create_ppt(fans).save(ppt_bytes)
+    create_ppt(fans,apikey).save(ppt_bytes)
     ppt_bytes.seek(0)
     # print(fans)
     return send_file(
