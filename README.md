@@ -9,6 +9,10 @@ AI-PPT-Generator is a Python-based tool that automatically generates PowerPoint 
 - Include images inline or as slide backgrounds.
 - Supports generating slides from multiple input sources.
 
+## Working 
+
+The AI-PPT-Generator works by taking input text, or existing PPT content and converting it into fully formatted slides. Each slide is created by parsing the input into markdown: headings become slide titles, lines are converted into bullet points, and inline images are detected and added to the slide. After this the markdown file is passed to a llm, which then converts it and provides a new markdown, which is then converted to a ppt. A background image is also be applied to each slide. The app dynamically adjusts text placement and formatting to maintain readability, using Python libraries like python-pptx for slide creation and Pillow for image processing. This allows users to generate professional-looking presentations automatically from structured content.
+
 ## Screenshots
 
 <img width="1855" height="924" alt="image" src="https://github.com/user-attachments/assets/d7a04f3c-0e86-4438-9f31-5ee8ae5d27c7" />
