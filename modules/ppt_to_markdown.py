@@ -9,8 +9,6 @@ def pptx_to_markdown(pptx_bytes, output_dir="extracted_images"):
     os.makedirs(output_dir, exist_ok=True)
     markdown_lines = []
     for i, slide in enumerate(prs.slides, start=1):
-        # Slide header
-        # Background image (if exists)
         fill = slide.background.fill
         if fill.type == MSO_FILL.PICTURE:
             blip = fill._xFill.blipFill.blip
@@ -22,18 +20,14 @@ def pptx_to_markdown(pptx_bytes, output_dir="extracted_images"):
                     f.write(image_part.blob)
                 markdown_lines.append(f"![Background]({os.path.basename(bg_filename)})\n")
 
-        # Slide shapes
         for shape in slide.shapes:
-            # Text content
             if hasattr(shape, "text") and shape.text.strip():
                 text = shape.text.strip()
                 if not markdown_lines[-1].startswith("##") and not markdown_lines[-1].startswith("# "):
-                    # Treat first text as title, rest as normal
                     markdown_lines.append(f"## {text}\n")
                 else:
                     markdown_lines.append(text + "\n")
 
-            # Extract pictures
             if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
                 image = shape.image
                 ext = image.ext
