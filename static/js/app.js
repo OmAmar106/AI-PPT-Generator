@@ -22,13 +22,11 @@ class ChatBot {
     }
 
     init() {
-        // Small delay to ensure DOM is fully loaded
-        setTimeout(() => {
-            this.setupEventListeners();
-            this.showWelcomeMessage();
-            this.updateSendButton();
-        }, 100);
+        this.setupEventListeners();
+        this.showWelcomeMessage();
+        this.updateSendButton();
     }
+
 
     setupEventListeners() {
         // Send button click
@@ -95,7 +93,7 @@ class ChatBot {
 
     showWelcomeMessage() {
         const welcomeMessage = "Hello! I'm your PowerPoint assistant. I can help you create or enhance presentations. You can upload an existing PPT file, provide text instructions, or both. How can I help you today?";
-        this.addBotMessage(welcomeMessage);
+        this.addBotMessage(null,welcomeMessage);
     }
 
     adjustTextareaHeight() {
@@ -263,24 +261,27 @@ class ChatBot {
         try {
             const formData = new FormData();
             if (text) formData.append("text", text);
+            
             files.forEach((file) => formData.append("files[]", file));
+            const apiKey = document.getElementById("apiKeyInput").value;
+            if(!apiKey) throw new Error("Please Enter API Key.");
 
+            formData.append("api_key", apiKey);
             const response = await fetch("/process", {
                 method: "POST",
                 body: formData
             });
 
-            if (!response.ok) throw new Error("Failed to process request");
+            if (!response.ok) throw new Error("Failed to process request. Please try again.");
 
-            const result = await response.json();
+            const result = await response.blob();
             this.hideTypingIndicator();
 
-            this.addBotMessage(result.message || "Your presentation has been processed!", true);
+            this.addBotMessage(result,"Your presentation has been processed!", true);
 
         } catch (err) {
             this.hideTypingIndicator();
-            this.showError("Failed to process request. Please try again.");
-            console.error(err);
+            this.showError(err);
         }
 
         this.clearUploadedFiles();
@@ -316,70 +317,57 @@ class ChatBot {
         this.scrollToBottom();
     }
 
-    addBotMessage(text, includeDownload = false) {
-        const messageContainer = document.createElement('div');
-        messageContainer.className = 'message-container bot-message-container';
+addBotMessage(result, text, includeDownload = false) {
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container bot-message-container';
 
-        let downloadButton = '';
-        if (includeDownload) {
-            downloadButton = `
-                <button class="download-button" type="button" onclick="chatBot.downloadFile()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Download Enhanced PPT
-                </button>
-            `;
-        }
-
-        messageContainer.innerHTML = `
-            <div class="message-wrapper">
-                <div class="bot-avatar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M12 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="message bot-message">
-                    ${this.escapeHtml(text)}
-                    ${downloadButton}
-                </div>
+    // Main message HTML
+    messageContainer.innerHTML = `
+        <div class="message-wrapper">
+            <div class="bot-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M12 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
             </div>
-            <div class="timestamp">${this.formatTime(new Date())}</div>
+            <div class="message bot-message">
+                ${this.escapeHtml(text)}
+            </div>
+        </div>
+        <div class="timestamp">${this.formatTime(new Date())}</div>
+    `;
+
+    this.chatMessages.appendChild(messageContainer);
+    this.scrollToBottom();
+
+    // Add download button if needed
+    if (includeDownload && result) {
+        const btn = document.createElement('button');
+        btn.className = 'download-button';
+        btn.type = 'button';
+        btn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Download Enhanced PPT
         `;
-
-        this.chatMessages.appendChild(messageContainer);
-        this.scrollToBottom();
+        btn.addEventListener('click', () => this.downloadFile(result));
+        messageContainer.querySelector('.message.bot-message').appendChild(btn);
     }
+}
 
-    downloadFile() {
-        const content = `This is a simulated PowerPoint file download.
-        
-Generated by PowerPoint AI Assistant
-Date: ${new Date().toLocaleString()}
-
-In a real implementation, this would be your processed PowerPoint file.
-The backend would return the actual .pptx file for download.`;
-
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Enhanced_Presentation_${Date.now()}.txt`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(url);
-
-        setTimeout(() => {
-            this.addBotMessage("Great! Your presentation has been downloaded successfully. Is there anything else you'd like me to help you with?");
-        }, 1000);
+    downloadFile(blob) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "presentation.pptx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
     }
 
     clearUploadedFiles() {
